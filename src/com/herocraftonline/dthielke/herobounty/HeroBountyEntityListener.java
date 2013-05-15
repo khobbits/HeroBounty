@@ -8,9 +8,9 @@
 
 package com.herocraftonline.dthielke.herobounty;
 
-import com.herocraftonline.dthielke.herobounty.bounties.Bounty;
+import java.util.List;
 
-import mc.alk.arena.listeners.competition.InArenaListener;
+import mc.alk.arena.BattleArena;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
@@ -25,61 +25,66 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import java.util.List;
+import com.herocraftonline.dthielke.herobounty.bounties.Bounty;
 
 public class HeroBountyEntityListener implements Listener {
-    public static HeroBounty plugin;
+	public static HeroBounty plugin;
 
-    public HeroBountyEntityListener(HeroBounty plugin) {
-        HeroBountyEntityListener.plugin = plugin;
-    }
+	public HeroBountyEntityListener(HeroBounty plugin) {
+		HeroBountyEntityListener.plugin = plugin;
+	}
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onEntityDeath(EntityDeathEvent event) {
-        Entity entity = event.getEntity();
-        if (!(entity instanceof Player)) {
-            return;
-        }
-        Player defender = (Player) entity;
-        String defenderName = defender.getName();
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+	public void onEntityDeath(EntityDeathEvent event) {
+		Entity entity = event.getEntity();
+		if (!(entity instanceof Player)) {
+			return;
+		}
+		Player defender = (Player) entity;
+		String defenderName = defender.getName();
 
-        EntityDamageEvent dmgEvent = entity.getLastDamageCause();
-        String attackerName;
-        if (dmgEvent instanceof EntityDamageByEntityEvent) {
-            Entity attacker = ((EntityDamageByEntityEvent) dmgEvent).getDamager();
-            if (attacker instanceof Projectile) {
-                attacker = ((Projectile) attacker).getShooter();
-            }
-            if (attacker instanceof Player) {
-                attackerName = ((Player) attacker).getName();
-            } else {
-                return;
-            }
-        } else {
-            return;
-        }
+		EntityDamageEvent dmgEvent = entity.getLastDamageCause();
+		Player attacker;
+		String attackerName;
+		if (dmgEvent instanceof EntityDamageByEntityEvent) {
+			Entity attackingEnt = ((EntityDamageByEntityEvent) dmgEvent).getDamager();
+			if (attackingEnt instanceof Projectile) {
+				attackingEnt = ((Projectile) attackingEnt).getShooter();
+			}
+			if (attackingEnt instanceof Player) {
+				attacker = (Player) attackingEnt;
+				attackerName = ((Player) attackingEnt).getName();
+			}
+			else {
+				return;
+			}
+		}
+		else {
+			return;
+		}
 
-        List<Bounty> bounties = plugin.getBountyManager().getBounties();
-        for (int i = 0; i < bounties.size(); i++) {
-            Bounty b = bounties.get(i);
-            
-            // Ensure that the players are not in an arena first
-            if (InArenaListener.inArena(attackerName) || InArenaListener.inArena(defenderName))
-            
-            // Complete the hunt
-            if (b.getTarget().equalsIgnoreCase(defenderName) && b.isHunter(attackerName)) {
-                plugin.getBountyManager().completeBounty(i, attackerName);
-                event.getDrops().add(getHeadOfDefender(defenderName));
-                return;
-            }
-        }
-    }
+		List<Bounty> bounties = plugin.getBountyManager().getBounties();
+		for (int i = 0; i < bounties.size(); i++) {
+			Bounty b = bounties.get(i);
 
-    private ItemStack getHeadOfDefender(String defenderName) {
-        ItemStack skullItem = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
-        SkullMeta skullMeta = (SkullMeta) skullItem.getItemMeta();
-        skullMeta.setOwner(defenderName);
-        skullItem.setItemMeta(skullMeta);
-        return skullItem;
-    }
+			// Ensure that the players are not in an arena first
+			if (!(BattleArena.inArena((attacker)) || BattleArena.inArena((defender)))) {
+
+				// Check to see if any players are claiming any bounties
+				if (b.getTarget().equalsIgnoreCase(defenderName) && b.isHunter(attackerName)) {
+					plugin.getBountyManager().completeBounty(i, attackerName);
+					event.getDrops().add(getHeadOfDefender(defenderName));
+					return;
+				}
+			}
+		}
+	}
+
+	private ItemStack getHeadOfDefender(String defenderName) {
+		ItemStack skullItem = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
+		SkullMeta skullMeta = (SkullMeta) skullItem.getItemMeta();
+		skullMeta.setOwner(defenderName);
+		skullItem.setItemMeta(skullMeta);
+		return skullItem;
+	}
 }
