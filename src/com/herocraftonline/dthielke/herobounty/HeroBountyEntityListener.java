@@ -10,6 +10,8 @@ package com.herocraftonline.dthielke.herobounty;
 
 import com.herocraftonline.dthielke.herobounty.bounties.Bounty;
 
+import mc.alk.arena.listeners.competition.InArenaListener;
+
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -60,7 +62,11 @@ public class HeroBountyEntityListener implements Listener {
         List<Bounty> bounties = plugin.getBountyManager().getBounties();
         for (int i = 0; i < bounties.size(); i++) {
             Bounty b = bounties.get(i);
-
+            
+            // Ensure that the players are not in an arena first
+            if (InArenaListener.inArena(attackerName) || InArenaListener.inArena(defenderName))
+            
+            // Complete the hunt
             if (b.getTarget().equalsIgnoreCase(defenderName) && b.isHunter(attackerName)) {
                 plugin.getBountyManager().completeBounty(i, attackerName);
                 event.getDrops().add(getHeadOfDefender(defenderName));
