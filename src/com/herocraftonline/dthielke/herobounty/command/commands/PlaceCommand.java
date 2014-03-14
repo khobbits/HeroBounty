@@ -57,10 +57,11 @@ public class PlaceCommand extends BasicInteractiveCommand {
                         if (HeroBounty.permission.playerHas(owner, "herobounty.new") || HeroBounty.permission.playerHas(owner, "herobounty.place")) {
                             if (!HeroBounty.permission.playerHas(target, "herobounty.untargettable")) {
                                 List<Bounty> bounties = plugin.getBountyManager().getBounties();
+                                boolean addToBounty = false;
                                 for (Bounty b : bounties) {
                                     if (b.getTarget().equalsIgnoreCase(targetName)) {
                                         Messaging.send(owner, "§7[§eBounty§7] There is already a bounty on $1.", targetName);
-                                        return false;
+                                        addToBounty = true;
                                     }
                                 }
 
@@ -81,6 +82,7 @@ public class PlaceCommand extends BasicInteractiveCommand {
                                     int deathPenalty = (int) (plugin.getBountyManager().getDeathFee() * award);
 
                                     Bounty bounty = new Bounty(ownerName, owner.getDisplayName(), targetName, target.getDisplayName(), award, postingFee, contractFee, deathPenalty);
+                                    bounty.setAddToBounty(addToBounty);
                                     pendingBounties.put(executor, bounty);
                                     int cancellationFee = (int) (plugin.getBountyManager().getCancellationFee() * value);
                                     if (cancellationFee > 0) {
@@ -120,16 +122,26 @@ public class PlaceCommand extends BasicInteractiveCommand {
             if (executor instanceof Player) {
                 List<Bounty> bounties = plugin.getBountyManager().getBounties();
                 Bounty bounty = pendingBounties.remove(executor);
+                Bounty existingBounty = plugin.getBountyManager().getBountyOn(bounty.getTarget());
                 int totalValue = bounty.getValue() + bounty.getPostingFee(); 
 
                 if (HeroBounty.economy.getBalance(bounty.getOwner()) >= totalValue) {
-                    bounties.add(bounty);
+                    if (bounty.getAddToBounty() && existingBounty != null) {
+                        existingBounty.setValue(existingBounty.getValue() + bounty.getValue());
+                        existingBounty.setCanCancel(false);
+                        Messaging.send(executor, "§7[§eBounty§7] Added to existing bounty on $1's head for $2.", bounty.getTarget(), HeroBounty.economy.format(bounty.getValue()));
+                        Messaging.send(executor, "§7[§eBounty§7] You have been charged $1 for posting this bounty.", HeroBounty.economy.format(bounty.getPostingFee()));
+                        Messaging.broadcast("§7[§eBounty§7] An existing bounty has increased for $1.", HeroBounty.economy.format(bounty.getValue()));
+                    }
+                    else {
+                        bounties.add(bounty);
+                        Messaging.send(executor, "§7[§eBounty§7] Placed a bounty on $1's head for $2.", bounty.getTarget(), HeroBounty.economy.format(bounty.getValue()));
+                        Messaging.send(executor, "§7[§eBounty§7] You have been charged $1 for posting this bounty.", HeroBounty.economy.format(bounty.getPostingFee()));
+                        Messaging.broadcast("§7[§eBounty§7] A new bounty has been placed for $1.", HeroBounty.economy.format(bounty.getValue()));
+                    }
                     Collections.sort(bounties);
     
                     HeroBounty.economy.withdrawPlayer(bounty.getOwner(), totalValue);
-                    Messaging.send(executor, "§7[§eBounty§7] Placed a bounty on $1's head for $2.", bounty.getTarget(), HeroBounty.economy.format(bounty.getValue()));
-                    Messaging.send(executor, "§7[§eBounty§7] You have been charged $1 for posting this bounty.", HeroBounty.economy.format(bounty.getPostingFee()));
-                    Messaging.broadcast("§7[§eBounty§7] A new bounty has been placed for $1.", HeroBounty.economy.format(bounty.getValue()));
     
                     plugin.saveData();
                     return true;

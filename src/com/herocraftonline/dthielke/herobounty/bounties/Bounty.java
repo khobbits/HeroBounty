@@ -31,6 +31,8 @@ public class Bounty implements Comparable<Bounty> {
     private int deathPenalty = 0;
     private int contractFee = 0;
     private Date creationDate;
+    private boolean canCancel = true;
+    private boolean addToBounty = false;
 
     public Bounty() {}
 
@@ -44,6 +46,8 @@ public class Bounty implements Comparable<Bounty> {
         this.contractFee = contractFee;
         this.deathPenalty = deathPenalty;
         this.creationDate = new Date();
+        this.canCancel = true;
+        this.addToBounty = false;
     }
     
     public void addHunter(Player player) {
@@ -228,5 +232,21 @@ public class Bounty implements Comparable<Bounty> {
 
     public Date getCreationDate() {
         return this.creationDate;
+    }
+    
+    public void setCanCancel(boolean canCancel) {
+        this.canCancel = canCancel;
+    }
+    
+    public boolean getCanCancel() {
+        return this.canCancel;
+    }
+    
+    public void setAddToBounty(boolean addToBounty) {
+        this.addToBounty = addToBounty;
+    }
+    
+    public boolean getAddToBounty() {
+        return this.addToBounty;
     }
 }
