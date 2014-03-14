@@ -10,7 +10,7 @@ package com.herocraftonline.dthielke.herobounty;
 
 import java.util.List;
 
-import mc.alk.arena.BattleArena;
+//import mc.alk.arena.BattleArena;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
@@ -68,7 +68,7 @@ public class HeroBountyEntityListener implements Listener {
 			Bounty b = bounties.get(i);
 
 			// Ensure that the players are not in an arena first
-			if (!(BattleArena.inArena((attacker)) || BattleArena.inArena((defender)))) {
+			//if (!(BattleArena.inArena((attacker)) || BattleArena.inArena((defender)))) {
 
 				// Check to see if any players are claiming any bounties
 				if (b.getTarget().equalsIgnoreCase(defenderName) && b.isHunter(attackerName)) {
@@ -78,7 +78,7 @@ public class HeroBountyEntityListener implements Listener {
 				}
 			}
 		}
-	}
+	//}
 
 	private ItemStack getHeadOfDefender(String defenderName) {
 		ItemStack skullItem = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
