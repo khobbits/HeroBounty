@@ -61,7 +61,12 @@ public class CancelCommand extends BasicInteractiveCommand {
                     Messaging.send(owner, "You don't own this bounty.");
                     return false;
                 }
-
+                
+                if (!bounty.getCanCancel()) {
+                    Messaging.send(owner, "You can't cancel this bounty.");
+                    return false;
+                }
+                
                 int cancellationFee = (int) ((bounty.getValue() + bounty.getPostingFee()) * bountyMngr.getCancellationFee());
 
                 if (cancellationFee > 0) {
